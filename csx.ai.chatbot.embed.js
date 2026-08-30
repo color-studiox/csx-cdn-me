@@ -9,10 +9,10 @@
         return scripts[scripts.length - 1];
     })();
     
-    let baseURL = 'https://bot.colorstudiox.com';
+    let baseURL = 'https://chatbot.colorstudiox.com';
     const botToken = currentScript ? (currentScript.getAttribute('data-bot-id') || currentScript.getAttribute('data-bot-token') || currentScript.getAttribute('data-api-key') || '') : '';
     if (currentScript && currentScript.getAttribute('data-api-host')) {
-        baseURL = currentScript.getAttribute('data-api-host');
+        baseURL = currentScript.getAttribute('data-api-host').replace(/\/+$/, '');
     } else if (currentScript && currentScript.src) {
         try {
             const urlObj = new URL(currentScript.src);
