@@ -1,54 +1,4 @@
-(function() {
-    'use strict';
-
-    if (window.CSXAIBotLoaded) return;
-    window.CSXAIBotLoaded = true;
-
-    const currentScript = document.currentScript || (function() {
-        const scripts = document.getElementsByTagName('script');
-        return scripts[scripts.length - 1];
-    })();
-    
-    let baseURL = 'https://chatbot.colorstudiox.com';
-    const botToken = currentScript ? (currentScript.getAttribute('data-bot-id') || currentScript.getAttribute('data-bot-token') || currentScript.getAttribute('data-api-key') || '') : '';
-    if (currentScript && currentScript.getAttribute('data-api-host')) {
-        baseURL = currentScript.getAttribute('data-api-host').replace(/\/+$/, '');
-    } else if (currentScript && currentScript.src) {
-        try {
-            const urlObj = new URL(currentScript.src);
-            if (!urlObj.hostname.includes('jsdelivr.net') && 
-                !urlObj.hostname.includes('github') && 
-                !urlObj.hostname.includes('unpkg') && 
-                !urlObj.hostname.includes('fastly')) {
-                baseURL = urlObj.origin;
-            }
-        } catch (e) {}
-    }
-
-    let sessionId = localStorage.getItem('csx_ai_bot_session');
-    if (!sessionId) {
-        sessionId = 'sess_' + Math.random().toString(36).substring(2) + Date.now().toString(36);
-        localStorage.setItem('csx_ai_bot_session', sessionId);
-    }
-
-    let botConfig = {
-        bot_name: 'AI Assistant',
-        greeting_message: 'Hello! How can I help you today?',
-        theme_color: '#2563eb',
-        bot_avatar: 'https://colorstudiox.com/assets/img/color-studio-x-brand-icon.svg'
-    };
-
-    let selectedImageFile = null;
-    let isOpen = false;
-    let isSending = false;
-
-    const widgetHost = document.createElement('div');
-    widgetHost.id = 'csx-chat-widget-root';
-    document.body.appendChild(widgetHost);
-    const shadow = widgetHost.attachShadow({ mode: 'open' });
-
-    const style = document.createElement('style');
-    style.textContent = `
+(function(){"use strict";if(window.CSXAIBotLoaded)return;window.CSXAIBotLoaded=!0;const d=document.currentScript||(function(){const e=document.getElementsByTagName("script");return e[e.length-1]})();let k="https://chatbot.colorstudiox.com";const C=d&&(d.getAttribute("data-bot-id")||d.getAttribute("data-bot-token")||d.getAttribute("data-api-key"))||"";if(d&&d.getAttribute("data-api-host"))k=d.getAttribute("data-api-host").replace(/\/+$/,"");else if(d&&d.src)try{const e=new URL(d.src);!e.hostname.includes("jsdelivr.net")&&!e.hostname.includes("github")&&!e.hostname.includes("unpkg")&&!e.hostname.includes("fastly")&&(k=e.origin)}catch(e){}let E=localStorage.getItem("csx_ai_bot_session");E||(E="sess_"+Math.random().toString(36).substring(2)+Date.now().toString(36),localStorage.setItem("csx_ai_bot_session",E));let s={bot_name:"AI Assistant",greeting_message:"Hello! How can I help you today?",theme_color:"#2563eb",bot_avatar:"https://colorstudiox.com/assets/img/color-studio-x-brand-icon.svg"},g=null,f=!1,L=!1;const p=document.createElement("div");p.id="csx-chat-widget-root",document.body.appendChild(p);const a=p.attachShadow({mode:"open"}),P=document.createElement("style");P.textContent=`
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
         
         .csx-chat-launcher {
@@ -84,9 +34,9 @@
         }
 
         @keyframes csxPulseLauncher {
-            0% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.7); }
-            70% { box-shadow: 0 0 0 15px rgba(37, 211, 102, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); }
+            0% { box-shadow: 0 0 0 0 var(--pulse-start, rgba(37, 99, 235, 0.75)); }
+            70% { box-shadow: 0 0 0 15px var(--pulse-end, rgba(37, 99, 235, 0)); }
+            100% { box-shadow: 0 0 0 0 var(--pulse-end, rgba(37, 99, 235, 0)); }
         }
         .csx-chat-launcher.csx-anim-pulse:not(.is-open) {
             animation: csxPulseLauncher 2s infinite ease-in-out !important;
@@ -483,7 +433,7 @@
         }
         .csx-theme-whatsapp .csx-messages {
             background-color: #efeae2 !important;
-            background-image: url("data:image/svg+xml;utf8,<svg width=\'400\' height=\'400\' viewBox=\'0 0 400 400\' xmlns=\'http://www.w3.org/2000/svg\'><g fill=\'none\' stroke=\'%23536471\' stroke-width=\'1.2\' stroke-linecap=\'round\' stroke-linejoin=\'round\' opacity=\'0.08\'><path d=\'M40 50h40a8 8 0 0 1 8 8v24a8 8 0 0 1-8 8H56l-14 12v-12h-2a8 8 0 0 1-8-8V58a8 8 0 0 1 8-8z\'/><circle cx=\'56\' cy=\'70\' r=\'2\' fill=\'%23536471\'/><circle cx=\'64\' cy=\'70\' r=\'2\' fill=\'%23536471\'/><circle cx=\'72\' cy=\'70\' r=\'2\' fill=\'%23536471\'/><circle cx=\'170\' cy=\'65\' r=\'16\'/><path d=\'M170 55v10l7 4\'/><path d=\'M280 50l30 15-30 15 6-15z\'/><path d=\'M280 50l12 15-12 15\'/><path d=\'M50 170h26a4 4 0 0 1 4 4v16a8 8 0 0 1-8 8H54a8 8 0 0 1-8-8v-16a4 4 0 0 1 4-4z\'/><path d=\'M80 174h6a4 4 0 0 1 4 4v4a4 4 0 0 1-4 4h-6\'/><path d=\'M44 202h44\'/><path d=\'M56 160c0 4 4 4 4 8m8-8c0 4 4 4 4 8\'/><path d=\'M170 160c-8 0-14 6-14 14 0 10 14 22 14 22s14-12 14-22c0-8-6-14-14-14z\'/><circle cx=\'170\' cy=\'174\' r=\'4\'/><rect x=\'270\' y=\'165\' width=\'36\' height=\'26\' rx=\'5\'/><circle cx=\'288\' cy=\'178\' r=\'7\'/><path d=\'M282 165l-2-4h16l-2 4\'/><path d=\'M54 280c-6-6-16-2-16 6 0 10 16 18 16 18s16-8 16-18c0-8-10-12-16-6z\'/><path d=\'M152 290a18 18 0 0 1 36 0v10h-6v-10a12 12 0 0 0-24 0v10h-6z\'/><rect x=\'148\' y=\'292\' width=\'6\' height=\'12\' rx=\'2\' fill=\'%23536471\'/><rect x=\'186\' y=\'292\' width=\'6\' height=\'12\' rx=\'2\' fill=\'%23536471\'/><path d=\'M290 270l3 8 8 3-8 3-3 8-3-8-8-3 8-3z\'/><rect x=\'340\' y=\'70\' width=\'30\' height=\'18\' rx=\'4\'/><path d=\'M346 76h18m-18 6h12\'/><path d=\'M350 180a8 8 0 0 0-8-8v-2a2 2 0 0 0-4 0v2a8 8 0 0 0-8 8c0 6-3 8-3 8h26s-3-2-3-8z\'/><path d=\'M336 190a3 3 0 0 0 6 0\'/><path d=\'M360 280v18a5 5 0 1 1-4-4.8V276l16-4v16a5 5 0 1 1-4-4.8V272z\'/><circle cx=\'90\' cy=\'350\' r=\'8\'/><path d=\'M90 336v4m0 20v4m-14-14h4m20 0h4m-11-11l3 3m14 14l3 3m-20 0l3-3m14-14l3-3\'/><path d=\'M220 340l14-6 14 6v10c0 10-14 18-14 18s-14-8-14-18z\'/><path d=\'M228 348l4 4 8-8\'/><path d=\'M310 340c6-10 18-14 18-14s-4 12-14 18l-4-4z\'/><circle cx=\'318\' cy=\'336\' r=\'2\' fill=\'%23536471\'/></g></svg>") !important;
+            background-image: url("data:image/svg+xml;utf8,<svg width='400' height='400' viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'><g fill='none' stroke='%23536471' stroke-width='1.2' stroke-linecap='round' stroke-linejoin='round' opacity='0.08'><path d='M40 50h40a8 8 0 0 1 8 8v24a8 8 0 0 1-8 8H56l-14 12v-12h-2a8 8 0 0 1-8-8V58a8 8 0 0 1 8-8z'/><circle cx='56' cy='70' r='2' fill='%23536471'/><circle cx='64' cy='70' r='2' fill='%23536471'/><circle cx='72' cy='70' r='2' fill='%23536471'/><circle cx='170' cy='65' r='16'/><path d='M170 55v10l7 4'/><path d='M280 50l30 15-30 15 6-15z'/><path d='M280 50l12 15-12 15'/><path d='M50 170h26a4 4 0 0 1 4 4v16a8 8 0 0 1-8 8H54a8 8 0 0 1-8-8v-16a4 4 0 0 1 4-4z'/><path d='M80 174h6a4 4 0 0 1 4 4v4a4 4 0 0 1-4 4h-6'/><path d='M44 202h44'/><path d='M56 160c0 4 4 4 4 8m8-8c0 4 4 4 4 8'/><path d='M170 160c-8 0-14 6-14 14 0 10 14 22 14 22s14-12 14-22c0-8-6-14-14-14z'/><circle cx='170' cy='174' r='4'/><rect x='270' y='165' width='36' height='26' rx='5'/><circle cx='288' cy='178' r='7'/><path d='M282 165l-2-4h16l-2 4'/><path d='M54 280c-6-6-16-2-16 6 0 10 16 18 16 18s16-8 16-18c0-8-10-12-16-6z'/><path d='M152 290a18 18 0 0 1 36 0v10h-6v-10a12 12 0 0 0-24 0v10h-6z'/><rect x='148' y='292' width='6' height='12' rx='2' fill='%23536471'/><rect x='186' y='292' width='6' height='12' rx='2' fill='%23536471'/><path d='M290 270l3 8 8 3-8 3-3 8-3-8-8-3 8-3z'/><rect x='340' y='70' width='30' height='18' rx='4'/><path d='M346 76h18m-18 6h12'/><path d='M350 180a8 8 0 0 0-8-8v-2a2 2 0 0 0-4 0v2a8 8 0 0 0-8 8c0 6-3 8-3 8h26s-3-2-3-8z'/><path d='M336 190a3 3 0 0 0 6 0'/><path d='M360 280v18a5 5 0 1 1-4-4.8V276l16-4v16a5 5 0 1 1-4-4.8V272z'/><circle cx='90' cy='350' r='8'/><path d='M90 336v4m0 20v4m-14-14h4m20 0h4m-11-11l3 3m14 14l3 3m-20 0l3-3m14-14l3-3'/><path d='M220 340l14-6 14 6v10c0 10-14 18-14 18s-14-8-14-18z'/><path d='M228 348l4 4 8-8'/><path d='M310 340c6-10 18-14 18-14s-4 12-14 18l-4-4z'/><circle cx='318' cy='336' r='2' fill='%23536471'/></g></svg>") !important;
             background-size: 380px 380px !important;
         }
         .csx-theme-whatsapp .csx-msg-bot {
@@ -525,12 +475,7 @@
             color: #00a884 !important;
             background: #e9edef !important;
         }
-    `;
-
-    shadow.appendChild(style);
-
-    const container = document.createElement('div');
-    container.innerHTML = `
+    `,a.appendChild(P);const y=document.createElement("div");y.innerHTML=`
             <button class="csx-chat-launcher" id="csx-launcher">
                 <span class="csx-launcher-content">
                     <svg class="csx-launcher-chat-icon" id="csx-launcher-chat-icon" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
@@ -542,9 +487,9 @@
         <div class="csx-chat-window" id="csx-window">
             <div class="csx-header">
                 <div class="csx-header-info">
-                    <img class="csx-avatar" id="csx-avatar" src="${botConfig.bot_avatar}" alt="Avatar" />
+                    <img class="csx-avatar" id="csx-avatar" src="${s.bot_avatar}" alt="Avatar" />
                     <div>
-                        <div class="csx-bot-name" id="csx-bot-name">${botConfig.bot_name}</div>
+                        <div class="csx-bot-name" id="csx-bot-name">${s.bot_name}</div>
                         <div class="csx-bot-status"><span class="csx-status-dot"></span> Online</div>
                     </div>
                 </div>
@@ -554,7 +499,7 @@
             </div>
 
             <div class="csx-messages" id="csx-messages">
-                <div class="csx-msg csx-msg-bot" id="csx-greeting">${botConfig.greeting_message}</div>
+                <div class="csx-msg csx-msg-bot" id="csx-greeting">${s.greeting_message}</div>
                 <div class="csx-quick-chips" id="csx-quick-chips"></div>
                 <div class="csx-typing" id="csx-typing">
                     <span></span><span></span><span></span>
@@ -579,395 +524,10 @@
                 </div>
             </div>
         </div>
-    `;
+    `,a.appendChild(y);const m=a.getElementById("csx-launcher"),M=a.getElementById("csx-window"),l=a.getElementById("csx-messages"),_=a.getElementById("csx-typing"),x=a.getElementById("csx-input-msg"),u=a.getElementById("csx-send-btn"),I=a.getElementById("csx-file-input"),v=a.getElementById("csx-attach-btn"),T=a.getElementById("csx-img-preview"),q=a.getElementById("csx-preview-img-tag"),Y=a.getElementById("csx-preview-name"),$=a.getElementById("csx-remove-img"),B=a.getElementById("csx-bot-name"),z=a.getElementById("csx-avatar"),b=a.getElementById("csx-greeting");function H(e){if(!e)return"";let t=e.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");return t=t.replace(/\*\*([\s\S]*?)\*\*/g,"<strong>$1</strong>"),t=t.replace(/__([\s\S]*?)__/g,"<strong>$1</strong>"),t=t.replace(/\*([^\*\n]+)\*/g,"<em>$1</em>"),t=t.replace(/^[*\-]\s+/gm,"\u2022 "),t=t.replace(/\*\*/g,""),t=t.replace(/\r\n/g,`
+`).replace(/\r/g,`
+`),t=t.replace(/\n{3,}/g,`
 
-    shadow.appendChild(container);
+`),t=t.replace(/\n/g,"<br>"),t}function w(e,t){if(!e)return"rgba(37, 99, 235, "+t+")";var c=e.replace("#","").trim();if(c.length===3&&(c=c.split("").map(function(i){return i+i}).join("")),c.length!==6)return"rgba(37, 99, 235, "+t+")";var o=parseInt(c,16),n=o>>16&255,h=o>>8&255,r=o&255;return"rgba("+n+", "+h+", "+r+", "+t+")"}let F=k+"/api/widget-config.php";const A=[];C&&A.push("bot_token="+encodeURIComponent(C)),window.location&&window.location.hostname&&A.push("domain="+encodeURIComponent(window.location.hostname)),A.length>0&&(F+="?"+A.join("&")),fetch(F).then(e=>e.json()).then(e=>{if(e&&e.is_authorized===!1)B&&(B.textContent=e.bot_name||"CSX AI Agent"),z&&(z.src=e.bot_avatar||"https://chatbot.colorstudiox.com/csx-ai-chatbot-icon.webp"),b&&(b.innerHTML=H(e.greeting_message||`**Unauthorized Website Domain**
 
-    const launcher = shadow.getElementById('csx-launcher');
-    const chatWindow = shadow.getElementById('csx-window');
-    const messagesBox = shadow.getElementById('csx-messages');
-    const typingBox = shadow.getElementById('csx-typing');
-    const inputMsg = shadow.getElementById('csx-input-msg');
-    const sendBtn = shadow.getElementById('csx-send-btn');
-    const fileInput = shadow.getElementById('csx-file-input');
-    const attachBtn = shadow.getElementById('csx-attach-btn');
-    const imgPreview = shadow.getElementById('csx-img-preview');
-    const previewImgTag = shadow.getElementById('csx-preview-img-tag');
-    const previewName = shadow.getElementById('csx-preview-name');
-    const removeImgBtn = shadow.getElementById('csx-remove-img');
-    const botNameEl = shadow.getElementById('csx-bot-name');
-    const avatarEl = shadow.getElementById('csx-avatar');
-    const greetingEl = shadow.getElementById('csx-greeting');
-
-    function parseMarkdown(str) {
-        if (!str) return '';
-        let txt = str
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;");
-
-        // Convert bold **text** or __text__ across multiline/unicode
-        txt = txt.replace(/\*\*([\s\S]*?)\*\*/g, '<strong>$1</strong>');
-        txt = txt.replace(/__([\s\S]*?)__/g, '<strong>$1</strong>');
-
-        // Convert italic *text*
-        txt = txt.replace(/\*([^\*\n]+)\*/g, '<em>$1</em>');
-
-        // Convert list bullets starting with * or - at start of line
-        txt = txt.replace(/^[*\-]\s+/gm, '• ');
-
-        // Strip any remaining rogue ** symbols
-        txt = txt.replace(/\*\*/g, '');
-
-        // Normalize carriage returns and collapse excessive blank lines
-        txt = txt.replace(/\r\n/g, '\n').replace(/\r/g, '\n');
-        txt = txt.replace(/\n{3,}/g, '\n\n');
-
-        // Line breaks
-        txt = txt.replace(/\n/g, '<br>');
-
-        return txt;
-    }
-
-    // Load Domain Config
-    let configUrl = baseURL + '/api/widget-config.php';
-    const configParams = [];
-    if (botToken) configParams.push('bot_token=' + encodeURIComponent(botToken));
-    if (window.location && window.location.hostname) configParams.push('domain=' + encodeURIComponent(window.location.hostname));
-    if (configParams.length > 0) configUrl += '?' + configParams.join('&');
-
-    fetch(configUrl)
-        .then(res => res.json())
-        .then(data => {
-            if (data && data.is_authorized === false) {
-                // Domain not authorized: Disable inputs and display Connect Me / Contact Us message
-                if (botNameEl) botNameEl.textContent = data.bot_name || 'CSX AI Agent';
-                if (avatarEl) avatarEl.src = data.bot_avatar || 'https://colorstudiox.com/assets/img/color-studio-x-brand-icon.svg';
-                if (greetingEl) {
-                    greetingEl.innerHTML = parseMarkdown(data.greeting_message || '**Unauthorized Website Domain**\n\nThis website domain is not registered.') + 
-                        '<br><br><a href="https://colorstudiox.com" target="_blank" style="display:inline-flex; align-items:center; gap:6px; background:#2563eb; color:#ffffff; padding:10px 18px; border-radius:10px; text-decoration:none; font-weight:700; font-size:13px; box-shadow:0 4px 10px rgba(37,99,235,0.3);">Contact ColorStudioX to Connect Domain</a>';
-                }
-
-                // Disable text input
-                inputMsg.disabled = true;
-                inputMsg.placeholder = 'Domain not authorized. Contact Admin...';
-                inputMsg.style.background = '#f1f5f9';
-                inputMsg.style.cursor = 'not-allowed';
-
-                // Disable attach button
-                attachBtn.disabled = true;
-                attachBtn.style.opacity = '0.4';
-                attachBtn.style.cursor = 'not-allowed';
-                attachBtn.style.pointerEvents = 'none';
-
-                // Disable send button
-                sendBtn.disabled = true;
-                sendBtn.style.opacity = '0.4';
-                sendBtn.style.cursor = 'not-allowed';
-            } else if (data && data.bot_name) {
-                botConfig = Object.assign(botConfig, data);
-                widgetHost.style.setProperty('--theme-color', botConfig.theme_color);
-
-                // Update DOM Elements with Customer Settings
-                if (botNameEl) botNameEl.textContent = botConfig.bot_name;
-                if (avatarEl && botConfig.bot_avatar) avatarEl.src = botConfig.bot_avatar;
-                if (greetingEl && botConfig.greeting_message) greetingEl.innerHTML = parseMarkdown(botConfig.greeting_message);
-
-                // Render Quick Action Chips / Starter Buttons
-                const quickChipsContainer = shadow.getElementById('csx-quick-chips');
-                if (quickChipsContainer && Array.isArray(botConfig.quick_buttons) && botConfig.quick_buttons.length > 0) {
-                    quickChipsContainer.innerHTML = '';
-                    botConfig.quick_buttons.forEach(btnText => {
-                        const chip = document.createElement('button');
-                        chip.type = 'button';
-                        chip.className = 'csx-chip-btn';
-                        chip.textContent = btnText;
-                        chip.addEventListener('click', () => {
-                            inputMsg.value = btnText;
-                            sendMessage();
-                        });
-                        quickChipsContainer.appendChild(chip);
-                    });
-                }
-
-                // Apply Launcher Button Animation
-                const animType = botConfig.launcher_animation || 'bounce';
-                if (animType !== 'none' && launcher) {
-                    launcher.classList.add('csx-anim-' + animType);
-                }
-
-                // Apply Launcher Trigger Action (Hover Auto-Open)
-                if (botConfig.launcher_trigger === 'hover' && launcher) {
-                    launcher.addEventListener('mouseenter', () => {
-                        if (!isOpen) toggleChat(true);
-                    });
-                }
-
-                if (botConfig.widget_theme === 'whatsapp') {
-                    container.classList.add('csx-theme-whatsapp');
-                    const iconEl = shadow.getElementById('csx-launcher-chat-icon');
-                    if (iconEl) {
-                        iconEl.setAttribute('viewBox', '0 0 24 24');
-                        iconEl.setAttribute('fill', 'none');
-                        iconEl.setAttribute('stroke', 'none');
-                        iconEl.style.width = '24px';
-                        iconEl.style.height = '24px';
-                        iconEl.innerHTML = `<path fill-rule="evenodd" clip-rule="evenodd" d="M12.004 2C6.48 2 2.004 6.476 2.004 12c0 1.81.484 3.513 1.327 4.982L2.05 21.95l5.12-1.343A9.957 9.957 0 0 0 12.004 22c5.523 0 10-4.477 10-10s-4.477-10-10-10zm5.834 14.288c-.244.686-1.222 1.347-2.003 1.488-.535.096-1.233.173-3.585-.801-3.01-1.246-4.945-4.305-5.095-4.505-.149-.2-1.222-1.626-1.222-3.1 0-1.475.772-2.2 1.045-2.5.274-.3.597-.374.796-.374.199 0 .398.002.572.01.187.01.436-.07.683.523.25.6.846 2.07.92 2.22.075.15.125.324.025.524-.1.2-.15.324-.3.498-.15.175-.315.39-.45.524-.15.149-.306.312-.132.611.175.3.775 1.28 1.662 2.07 1.144 1.02 2.107 1.336 2.406 1.485.3.15.474.125.649-.075.174-.2.747-.872.946-1.171.199-.3.398-.25.672-.15.274.1 1.741.821 2.04.97.299.15.498.224.572.348.075.125.075.723-.169 1.409z" fill="#ffffff"></path>`;
-                    }
-                } else if (botConfig.launcher_icon) {
-                    const iconEl = shadow.getElementById('csx-launcher-chat-icon');
-                    if (iconEl) {
-                        const imgIcon = document.createElement('img');
-                        imgIcon.className = 'csx-launcher-chat-icon csx-launcher-icon-img';
-                        imgIcon.src = botConfig.launcher_icon;
-                        imgIcon.alt = 'Chat';
-                        imgIcon.style.width = '30px';
-                        imgIcon.style.height = '30px';
-                        imgIcon.style.objectFit = 'contain';
-                        iconEl.parentNode.replaceChild(imgIcon, iconEl);
-                    }
-                }
-            } else if (data && data.message) {
-                if (greetingEl) greetingEl.textContent = data.message;
-            }
-        })
-        .catch(err => console.error('CSX Chatbot Config Load Error:', err));
-
-    const headerCloseBtn = shadow.getElementById('csx-header-close-btn');
-    if (headerCloseBtn) {
-        headerCloseBtn.addEventListener('click', () => {
-            isOpen = false;
-            launcher.classList.remove('is-open');
-            chatWindow.classList.remove('is-open');
-        });
-    }
-
-    launcher.addEventListener('click', () => {
-        isOpen = !isOpen;
-        if (isOpen) {
-            launcher.classList.add('is-open');
-            chatWindow.classList.add('is-open');
-            inputMsg.focus();
-        } else {
-            launcher.classList.remove('is-open');
-            chatWindow.classList.remove('is-open');
-        }
-    });
-
-    attachBtn.addEventListener('click', () => fileInput.click());
-
-    fileInput.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            selectedImageFile = file;
-            previewName.textContent = file.name;
-            const reader = new FileReader();
-            reader.onload = (evt) => {
-                previewImgTag.src = evt.target.result;
-                imgPreview.style.display = 'flex';
-            };
-            reader.readAsDataURL(file);
-        }
-    });
-
-    removeImgBtn.addEventListener('click', () => {
-        selectedImageFile = null;
-        fileInput.value = '';
-        imgPreview.style.display = 'none';
-    });
-
-    function compressImage(file, callback) {
-        if (!file || !file.type || !file.type.startsWith('image/')) {
-            callback(file);
-            return;
-        }
-
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const img = new Image();
-            img.onload = function() {
-                const maxDim = 1200;
-                let width = img.width;
-                let height = img.height;
-
-                if (width > maxDim || height > maxDim) {
-                    if (width > height) {
-                        height = Math.round((height * maxDim) / width);
-                        width = maxDim;
-                    } else {
-                        width = Math.round((width * maxDim) / height);
-                        height = maxDim;
-                    }
-                }
-
-                const canvas = document.createElement('canvas');
-                canvas.width = width;
-                canvas.height = height;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, width, height);
-
-                canvas.toBlob((blob) => {
-                    if (blob && blob.size < file.size) {
-                        const resizedFile = new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".jpg", { type: 'image/jpeg', lastModified: Date.now() });
-                        callback(resizedFile);
-                    } else {
-                        callback(file);
-                    }
-                }, 'image/jpeg', 0.80);
-            };
-            img.onerror = () => callback(file);
-            img.src = e.target.result;
-        };
-        reader.onerror = () => callback(file);
-        reader.readAsDataURL(file);
-    }
-
-    function sendMessage() {
-        const text = inputMsg.value.trim();
-        if ((!text && !selectedImageFile) || isSending) return;
-
-        isSending = true;
-        sendBtn.disabled = true;
-
-        const userMsgDiv = document.createElement('div');
-        userMsgDiv.className = 'csx-msg csx-msg-user';
-
-        if (selectedImageFile) {
-            const imgEl = document.createElement('img');
-            imgEl.className = 'csx-msg-img';
-            imgEl.src = URL.createObjectURL(selectedImageFile);
-            userMsgDiv.appendChild(imgEl);
-        }
-
-        if (text) {
-            const textEl = document.createElement('div');
-            textEl.textContent = text;
-            userMsgDiv.appendChild(textEl);
-        }
-
-        messagesBox.appendChild(userMsgDiv);
-        messagesBox.scrollTop = messagesBox.scrollHeight;
-
-        const currentFile = selectedImageFile;
-        const currentText = text;
-        inputMsg.value = '';
-        selectedImageFile = null;
-        fileInput.value = '';
-        imgPreview.style.display = 'none';
-
-        typingBox.style.display = 'flex';
-        messagesBox.appendChild(typingBox);
-        messagesBox.scrollTop = messagesBox.scrollHeight;
-
-        compressImage(currentFile, (fileToSend) => {
-            const formData = new FormData();
-            formData.append('session_id', sessionId);
-            formData.append('message', currentText);
-            if (botToken) formData.append('bot_token', botToken);
-            if (window.location && window.location.hostname) formData.append('domain', window.location.hostname);
-            if (fileToSend) {
-                formData.append('image', fileToSend);
-            }
-
-            fetch(baseURL + '/api/chat.php', {
-                method: 'POST',
-                body: formData
-            })
-            .then(res => {
-                if (!res.ok) {
-                    throw new Error('HTTP ' + res.status);
-                }
-                return res.json();
-            })
-            .then(data => {
-                typingBox.style.display = 'none';
-                isSending = false;
-                sendBtn.disabled = false;
-
-                const botMsgDiv = document.createElement('div');
-                botMsgDiv.className = 'csx-msg csx-msg-bot';
-
-                if (data.status === 'success') {
-                    botMsgDiv.innerHTML = parseMarkdown(data.reply);
-                } else {
-                    botMsgDiv.textContent = data.message || 'An error occurred while connecting to AI.';
-                    botMsgDiv.style.color = '#ef4444';
-                }
-
-                messagesBox.appendChild(botMsgDiv);
-                messagesBox.scrollTop = messagesBox.scrollHeight;
-            })
-            .catch(err => {
-                typingBox.style.display = 'none';
-                isSending = false;
-                sendBtn.disabled = false;
-
-                const botMsgDiv = document.createElement('div');
-                botMsgDiv.className = 'csx-msg csx-msg-bot';
-                botMsgDiv.textContent = 'Connection error (' + err.message + '). Please try again.';
-                botMsgDiv.style.color = '#ef4444';
-
-                messagesBox.appendChild(botMsgDiv);
-                messagesBox.scrollTop = messagesBox.scrollHeight;
-            });
-        });
-    }
-
-    sendBtn.addEventListener('click', sendMessage);
-    inputMsg.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-            sendMessage();
-        }
-    });
-
-    // Public API for Live Theme Switching and Triggering
-    window.CSXChatbot = {
-        open: function(theme) {
-            if (theme) this.setTheme(theme);
-            isOpen = true;
-            launcher.classList.add('is-open');
-            chatWindow.classList.add('is-open');
-            setTimeout(() => inputMsg.focus(), 150);
-        },
-        close: function() {
-            isOpen = false;
-            launcher.classList.remove('is-open');
-            chatWindow.classList.remove('is-open');
-        },
-        toggle: function(theme) {
-            if (isOpen) {
-                this.close();
-            } else {
-                this.open(theme);
-            }
-        },
-        setTheme: function(theme) {
-            const iconEl = shadow.getElementById('csx-launcher-chat-icon');
-            if (theme === 'whatsapp') {
-                container.classList.add('csx-theme-whatsapp');
-                if (iconEl) {
-                    iconEl.setAttribute('viewBox', '0 0 24 24');
-                    iconEl.setAttribute('fill', 'none');
-                    iconEl.setAttribute('stroke', 'none');
-                    iconEl.style.width = '24px';
-                    iconEl.style.height = '24px';
-                    iconEl.innerHTML = `<path d="M6.014 8.00613C6.12827 7.1024 7.30277 5.87414 8.23488 6.01043L8.23339 6.00894C9.14051 6.18132 9.85859 7.74261 10.2635 8.44465C10.5504 8.95402 10.3641 9.4701 10.0965 9.68787C9.7355 9.97883 9.17099 10.3803 9.28943 10.7834C9.5 11.5 12 14 13.2296 14.7107C13.695 14.9797 14.0325 14.2702 14.3207 13.9067C14.5301 13.6271 15.0466 13.46 15.5548 13.736C16.3138 14.178 17.0288 14.6917 17.69 15.27C18.0202 15.546 18.0977 15.9539 17.8689 16.385C17.4659 17.1443 16.3003 18.1456 15.4542 17.9421C13.9764 17.5868 8 15.27 6.08033 8.55801C5.97237 8.24048 5.99955 8.12044 6.014 8.00613Z" fill="#ffffff"></path><path fill-rule="evenodd" clip-rule="evenodd" d="M12 23C10.7764 23 10.0994 22.8687 9 22.5L6.89443 23.5528C5.56462 24.2177 4 23.2507 4 21.7639V19.5C1.84655 17.492 1 15.1767 1 12C1 5.92487 5.92487 1 12 1C18.0751 1 23 5.92487 23 12C23 18.0751 18.0751 23 12 23ZM6 18.6303L5.36395 18.0372C3.69087 16.4772 3 14.7331 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12C21 16.9706 16.9706 21 12 21C11.0143 21 10.552 20.911 9.63595 20.6038L8.84847 20.3397L6 21.7639V18.6303Z" fill="#ffffff"></path>`;
-                }
-            } else {
-                container.classList.remove('csx-theme-whatsapp');
-                if (iconEl) {
-                    iconEl.setAttribute('viewBox', '0 0 24 24');
-                    iconEl.setAttribute('fill', 'none');
-                    iconEl.setAttribute('stroke', 'currentColor');
-                    iconEl.style.width = '24px';
-                    iconEl.style.height = '24px';
-                    iconEl.innerHTML = `<path d="m3 21 1.9-5.7a8.5 8.5 0 1 1 3.8 3.8z"></path>`;
-                }
-            }
-        },
-        setColor: function(color) {
-            widgetHost.style.setProperty('--theme-color', color);
-        }
-    };
-
-})();
+This website domain is not registered.`)+'<br><br><a href="https://colorstudiox.com" target="_blank" style="display:inline-flex; align-items:center; gap:6px; background:#2563eb; color:#ffffff; padding:10px 18px; border-radius:10px; text-decoration:none; font-weight:700; font-size:13px; box-shadow:0 4px 10px rgba(37,99,235,0.3);">Contact ColorStudioX to Connect Domain</a>'),x.disabled=!0,x.placeholder="Domain not authorized. Contact Admin...",x.style.background="#f1f5f9",x.style.cursor="not-allowed",v.disabled=!0,v.style.opacity="0.4",v.style.cursor="not-allowed",v.style.pointerEvents="none",u.disabled=!0,u.style.opacity="0.4",u.style.cursor="not-allowed";else if(e&&e.bot_name){s=Object.assign(s,e),p.style.setProperty("--theme-color",s.theme_color),p.style.setProperty("--pulse-start",w(s.theme_color,.75)),p.style.setProperty("--pulse-end",w(s.theme_color,0)),B&&(B.textContent=s.bot_name),z&&s.bot_avatar&&(z.src=s.bot_avatar),b&&s.greeting_message&&(b.innerHTML=H(s.greeting_message));const t=a.getElementById("csx-quick-chips");t&&Array.isArray(s.quick_buttons)&&s.quick_buttons.length>0&&(t.innerHTML="",s.quick_buttons.forEach(o=>{const n=document.createElement("button");n.type="button",n.className="csx-chip-btn",n.textContent=o,n.addEventListener("click",()=>{x.value=o,D()}),t.appendChild(n)}));const c=s.launcher_animation||"bounce";if(c!=="none"&&m&&m.classList.add("csx-anim-"+c),s.widget_theme==="whatsapp"){y.classList.add("csx-theme-whatsapp");const o=a.getElementById("csx-launcher-chat-icon");o&&(o.setAttribute("viewBox","0 0 24 24"),o.setAttribute("fill","none"),o.setAttribute("stroke","none"),o.style.width="24px",o.style.height="24px",o.innerHTML='<path fill-rule="evenodd" clip-rule="evenodd" d="M12.004 2C6.48 2 2.004 6.476 2.004 12c0 1.81.484 3.513 1.327 4.982L2.05 21.95l5.12-1.343A9.957 9.957 0 0 0 12.004 22c5.523 0 10-4.477 10-10s-4.477-10-10-10zm5.834 14.288c-.244.686-1.222 1.347-2.003 1.488-.535.096-1.233.173-3.585-.801-3.01-1.246-4.945-4.305-5.095-4.505-.149-.2-1.222-1.626-1.222-3.1 0-1.475.772-2.2 1.045-2.5.274-.3.597-.374.796-.374.199 0 .398.002.572.01.187.01.436-.07.683.523.25.6.846 2.07.92 2.22.075.15.125.324.025.524-.1.2-.15.324-.3.498-.15.175-.315.39-.45.524-.15.149-.306.312-.132.611.175.3.775 1.28 1.662 2.07 1.144 1.02 2.107 1.336 2.406 1.485.3.15.474.125.649-.075.174-.2.747-.872.946-1.171.199-.3.398-.25.672-.15.274.1 1.741.821 2.04.97.299.15.498.224.572.348.075.125.075.723-.169 1.409z" fill="#ffffff"></path>')}else if(s.launcher_icon){const o=a.getElementById("csx-launcher-chat-icon");if(o){const n=document.createElement("img");n.className="csx-launcher-chat-icon csx-launcher-icon-img",n.src=s.launcher_icon,n.alt="Chat",n.style.width="30px",n.style.height="30px",n.style.objectFit="contain",o.parentNode.replaceChild(n,o)}}}else e&&e.message&&b&&(b.textContent=e.message)}).catch(e=>console.error("CSX Chatbot Config Load Error:",e));function R(){f=!0,m.classList.add("is-open"),M.classList.add("is-open"),setTimeout(()=>x.focus(),150)}function N(){f=!1,m.classList.remove("is-open"),M.classList.remove("is-open")}const U=a.getElementById("csx-header-close-btn");U&&U.addEventListener("click",N),m.addEventListener("click",()=>{f?N():R()}),m.addEventListener("mouseenter",()=>{s.launcher_trigger==="hover"&&!f&&R()}),v.addEventListener("click",()=>I.click()),I.addEventListener("change",e=>{const t=e.target.files[0];if(t){g=t,Y.textContent=t.name;const c=new FileReader;c.onload=o=>{q.src=o.target.result,T.style.display="flex"},c.readAsDataURL(t)}}),$.addEventListener("click",()=>{g=null,I.value="",T.style.display="none"});function O(e,t){if(!e||!e.type||!e.type.startsWith("image/")){t(e);return}const c=new FileReader;c.onload=function(o){const n=new Image;n.onload=function(){let r=n.width,i=n.height;(r>1200||i>1200)&&(r>i?(i=Math.round(i*1200/r),r=1200):(r=Math.round(r*1200/i),i=1200));const j=document.createElement("canvas");j.width=r,j.height=i,j.getContext("2d").drawImage(n,0,0,r,i),j.toBlob(S=>{if(S&&S.size<e.size){const V=new File([S],e.name.replace(/\.[^/.]+$/,"")+".jpg",{type:"image/jpeg",lastModified:Date.now()});t(V)}else t(e)},"image/jpeg",.8)},n.onerror=()=>t(e),n.src=o.target.result},c.onerror=()=>t(e),c.readAsDataURL(e)}function D(){const e=x.value.trim();if(!e&&!g||L)return;L=!0,u.disabled=!0;const t=document.createElement("div");if(t.className="csx-msg csx-msg-user",g){const n=document.createElement("img");n.className="csx-msg-img",n.src=URL.createObjectURL(g),t.appendChild(n)}if(e){const n=document.createElement("div");n.textContent=e,t.appendChild(n)}l.appendChild(t),l.scrollTop=l.scrollHeight;const c=g,o=e;x.value="",g=null,I.value="",T.style.display="none",_.style.display="flex",l.appendChild(_),l.scrollTop=l.scrollHeight,O(c,n=>{const h=new FormData;h.append("session_id",E),h.append("message",o),C&&h.append("bot_token",C),window.location&&window.location.hostname&&h.append("domain",window.location.hostname),n&&h.append("image",n),fetch(k+"/api/chat.php",{method:"POST",body:h}).then(r=>{if(!r.ok)throw new Error("HTTP "+r.status);return r.json()}).then(r=>{_.style.display="none",L=!1,u.disabled=!1;const i=document.createElement("div");i.className="csx-msg csx-msg-bot",r.status==="success"?i.innerHTML=H(r.reply):(i.textContent=r.message||"An error occurred while connecting to AI.",i.style.color="#ef4444"),l.appendChild(i),l.scrollTop=l.scrollHeight}).catch(r=>{_.style.display="none",L=!1,u.disabled=!1;const i=document.createElement("div");i.className="csx-msg csx-msg-bot",i.textContent="Connection error ("+r.message+"). Please try again.",i.style.color="#ef4444",l.appendChild(i),l.scrollTop=l.scrollHeight})})}u.addEventListener("click",D),x.addEventListener("keydown",e=>{e.key==="Enter"&&D()}),window.CSXChatbot={open:function(e){e&&this.setTheme(e),f=!0,m.classList.add("is-open"),M.classList.add("is-open"),setTimeout(()=>x.focus(),150)},close:function(){f=!1,m.classList.remove("is-open"),M.classList.remove("is-open")},toggle:function(e){f?this.close():this.open(e)},setTheme:function(e){const t=a.getElementById("csx-launcher-chat-icon");e==="whatsapp"?(y.classList.add("csx-theme-whatsapp"),p.style.setProperty("--pulse-start","rgba(37, 211, 102, 0.75)"),p.style.setProperty("--pulse-end","rgba(37, 211, 102, 0)"),t&&(t.setAttribute("viewBox","0 0 24 24"),t.setAttribute("fill","none"),t.setAttribute("stroke","none"),t.style.width="24px",t.style.height="24px",t.innerHTML='<path d="M6.014 8.00613C6.12827 7.1024 7.30277 5.87414 8.23488 6.01043L8.23339 6.00894C9.14051 6.18132 9.85859 7.74261 10.2635 8.44465C10.5504 8.95402 10.3641 9.4701 10.0965 9.68787C9.7355 9.97883 9.17099 10.3803 9.28943 10.7834C9.5 11.5 12 14 13.2296 14.7107C13.695 14.9797 14.0325 14.2702 14.3207 13.9067C14.5301 13.6271 15.0466 13.46 15.5548 13.736C16.3138 14.178 17.0288 14.6917 17.69 15.27C18.0202 15.546 18.0977 15.9539 17.8689 16.385C17.4659 17.1443 16.3003 18.1456 15.4542 17.9421C13.9764 17.5868 8 15.27 6.08033 8.55801C5.97237 8.24048 5.99955 8.12044 6.014 8.00613Z" fill="#ffffff"></path><path fill-rule="evenodd" clip-rule="evenodd" d="M12 23C10.7764 23 10.0994 22.8687 9 22.5L6.89443 23.5528C5.56462 24.2177 4 23.2507 4 21.7639V19.5C1.84655 17.492 1 15.1767 1 12C1 5.92487 5.92487 1 12 1C18.0751 1 23 5.92487 23 12C23 18.0751 18.0751 23 12 23ZM6 18.6303L5.36395 18.0372C3.69087 16.4772 3 14.7331 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12C21 16.9706 16.9706 21 12 21C11.0143 21 10.552 20.911 9.63595 20.6038L8.84847 20.3397L6 21.7639V18.6303Z" fill="#ffffff"></path>')):(y.classList.remove("csx-theme-whatsapp"),p.style.setProperty("--pulse-start",w(s.theme_color,.75)),p.style.setProperty("--pulse-end",w(s.theme_color,0)),t&&(t.setAttribute("viewBox","0 0 24 24"),t.setAttribute("fill","none"),t.setAttribute("stroke","currentColor"),t.style.width="24px",t.style.height="24px",t.innerHTML='<path d="m3 21 1.9-5.7a8.5 8.5 0 1 1 3.8 3.8z"></path>'))},setColor:function(e){s.theme_color=e,p.style.setProperty("--theme-color",e),p.style.setProperty("--pulse-start",w(e,.75)),p.style.setProperty("--pulse-end",w(e,0))}}})();
